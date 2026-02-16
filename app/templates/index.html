@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>DevOps-Supported ECommerce Site</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        #cart {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #333;
+            background-color: #f0f0f0;
+        }
+
+        #products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .product-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            width: 250px;
+            border-radius: 5px;
+            box-shadow: 1px 1px 5px #ddd;
+        }
+
+        .product-box h3 {
+            margin: 0 0 10px 0;
+        }
+
+        .product-box p {
+            margin: 5px 0;
+        }
+
+        .product-box button {
+            margin-right: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">DevOps Winter 26 ECommerce Site</div>
+    <div id="cart">No items in cart</div>
+    <button id="submit-order">Submit Order</button>
+    <div id="products"></div>
+
+    <script src="{{ url_for('frontend.static', filename='main.js') }}"></script>
+</body>
+
+</html>
