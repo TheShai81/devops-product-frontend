@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  frontend-service:
+    build: .
+    image: shaileshbolduc/frontend-service:1.0.0
+    ports:
+      - "20000:20000"
+    environment:
+      PRODUCT_SERVICE_URL: http://localhost:20001
+      ORDER_SERVICE_URL: http://localhost:20002
+
+  security-scan:
+    image: aquasec/trivy:latest
+    depends_on:
+      - frontend-service
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: image shaileshbolduc/frontend-service:1.0.0
