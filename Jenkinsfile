@@ -1,0 +1,122 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "shaileshbolduc/frontend-service"
+        TAG = "build-${BUILD_NUMBER}"
+    }
+
+    triggers {
+        githubPush()
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Determine Environment') {
+            steps {
+                script {
+                    if (env.CHANGE_ID) {
+                        TARGET_ENV = "build"
+                    } else if (env.BRANCH_NAME == "develop") {
+                        TARGET_ENV = "dev"
+                    } else if (env.BRANCH_NAME.startsWith("release/")) {
+                        TARGET_ENV = "staging"
+                    } else if (env.BRANCH_NAME == "main") {
+                        TARGET_ENV = "prod"
+                    } else {
+                        TARGET_ENV = "build"
+                    }
+                    echo "Target Environment: ${TARGET_ENV}"
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Setting up Python Environment'
+
+                bat '''
+                python -m venv venv
+                call venv\\Scripts\\activate
+                pip install -r requirements.txt
+                '''
+            }
+        }
+
+
+        stage('Test') {
+            steps {
+                echo 'Running Tests'
+
+                bat '''
+                call venv\\Scripts\\activate
+                pip install pytest
+                pytest tests --maxfail=1 --disable-warnings -q
+                '''
+            }
+        }
+
+
+        stage('Security Scan') {
+            steps {
+                echo 'Running Trivy Scan'
+
+                bat '''
+                docker run --rm -v %cd%:/app aquasec/trivy fs /app
+                '''
+            }
+        }
+
+        stage('Container Build') {
+            steps {
+                echo 'Building Docker Image'
+
+                bat '''
+                docker build -t shaileshbolduc/product-frontend:%BUILD_NUMBER% .
+                '''
+            }
+        }
+
+        stage('Container Push') {
+            when {
+                not { changeRequest() }
+            }
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    docker push ${IMAGE_NAME}:${TAG}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                not { changeRequest() }
+            }
+            steps {
+                script {
+
+                    if (TARGET_ENV == "prod") {
+                        input message: "Approve Production Deployment?"
+                    }
+
+                    sh """
+                    echo "Deploying ${IMAGE_NAME}:${TAG} to ${TARGET_ENV} environment"
+                    """
+                }
+            }
+        }
+    }
+}
