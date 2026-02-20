@@ -105,7 +105,7 @@ pipeline {
         }
 
         stage('Deploy to Staging') {
-            when { expression { env.BRANCH_NAME.startsWith('release/') } }
+            when { expression { env.BRANCH_NAME.startsWith('release') } }
             steps {
                 echo "Deploying ${IMAGE_NAME}:${TAG} to Staging environment"
                 echo "Will implement in phases 4, 5, and 6."
