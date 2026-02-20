@@ -1,7 +1,6 @@
 from flask import Flask
-from .routes import frontend_bp
 
-def create_app():
-    app = Flask(__name__)
-    app.register_blueprint(frontend_bp)
-    return app
+app = Flask(__name__)
+
+# Import routes AFTER app is created to avoid circular imports
+from app import routes
