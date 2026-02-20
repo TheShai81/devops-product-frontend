@@ -65,10 +65,24 @@ pipeline {
 
         stage('Security Scan') {
             steps {
-                echo 'Running Trivy Scan'
+                echo 'Running Fast Security Scan'
 
                 bat '''
-                docker run --rm -v %cd%:/app aquasec/trivy fs /app
+                if not exist trivy-cache mkdir trivy-cache
+
+                docker run --rm ^
+                -v %cd%:/app ^
+                -v %cd%/trivy-cache:/root/.cache ^
+                aquasec/trivy:latest ^
+                fs ^
+                --scanners vuln ^
+                --skip-db-update ^
+                --no-progress ^
+                --severity HIGH,CRITICAL ^
+                --exclude venv ^
+                --exclude .git ^
+                --exclude __pycache__ ^
+                /app
                 '''
             }
         }
