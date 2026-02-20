@@ -67,10 +67,8 @@ pipeline {
             steps {
                 echo 'Running Fast Security Scan'
                 bat """
-                REM Ensure trivy cache exists
                 if not exist "%CD%\\trivy-cache\\db" docker run --rm -v "%CD%\\trivy-cache:/root/.cache" aquasec/trivy:latest image alpine:3.19 >nul
 
-                REM Run Trivy scan on project
                 docker run --rm ^
                 -v "%CD%:/app" ^
                 -v "%CD%/trivy-cache:/root/.cache" ^
