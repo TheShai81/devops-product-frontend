@@ -100,7 +100,7 @@ pipeline {
 
         stage('Container Push') {
             when {
-                not { changeRequest() }
+                branch 'main'
             }
             steps {
                 withCredentials([usernamePassword(
@@ -118,7 +118,7 @@ pipeline {
 
         stage('Deploy') {
             when {
-                not { changeRequest() }
+                branch 'main'
             }
             steps {
                 script {
