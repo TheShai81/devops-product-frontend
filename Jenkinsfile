@@ -66,16 +66,11 @@ pipeline {
         stage('Security Scan') {
             steps {
                 echo 'Running Fast Security Scan'
-
                 bat """
-                if not exist "%CD%\\trivy-cache\\db" (
-                    echo Initializing Trivy DB (one-time download)...
-                    docker run --rm ^
-                    -v "%CD%\\trivy-cache:/root/.cache" ^
-                    aquasec/trivy:latest ^
-                    image alpine:3.19 >nul
-                )
+                REM Ensure trivy cache exists
+                if not exist "%CD%\\trivy-cache\\db" docker run --rm -v "%CD%\\trivy-cache:/root/.cache" aquasec/trivy:latest image alpine:3.19 >nul
 
+                REM Run Trivy scan on project
                 docker run --rm ^
                 -v "%CD%:/app" ^
                 -v "%CD%/trivy-cache:/root/.cache" ^
@@ -91,6 +86,7 @@ pipeline {
                 """
             }
         }
+
 
         stage('Container Build') {
             steps {
