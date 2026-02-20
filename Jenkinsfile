@@ -68,9 +68,8 @@ pipeline {
                 echo 'Running Fast Security Scan'
 
                 bat """
-                if not exist "%CD%\\trivy-cache" (
-                    mkdir "%CD%\\trivy-cache"
-                )
+                
+                mkdir "%CD%\\trivy-cache"
 
                 if not exist "%CD%\\trivy-cache\\db" (
                     echo Initializing Trivy DB (one-time download)...
