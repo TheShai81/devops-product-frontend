@@ -70,6 +70,14 @@ pipeline {
                 bat '''
                 if not exist trivy-cache mkdir trivy-cache
 
+                if not exist trivy-cache\\db (
+                    echo Initializing Trivy DB (one-time download)...
+                    docker run --rm ^
+                    -v %cd%/trivy-cache:/root/.cache ^
+                    aquasec/trivy:latest ^
+                    image alpine:3.19 >nul
+                )
+
                 docker run --rm ^
                 -v %cd%:/app ^
                 -v %cd%/trivy-cache:/root/.cache ^
@@ -81,7 +89,6 @@ pipeline {
                 --severity HIGH,CRITICAL ^
                 --skip-dirs /app/venv ^
                 --skip-dirs /app/.git ^
-                --skip-dirs /app/__pycache__ ^
                 /app
                 '''
             }
