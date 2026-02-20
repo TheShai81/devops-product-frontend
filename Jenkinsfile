@@ -68,9 +68,6 @@ pipeline {
                 echo 'Running Fast Security Scan'
 
                 bat """
-                
-                mkdir "%CD%\\trivy-cache"
-
                 if not exist "%CD%\\trivy-cache\\db" (
                     echo Initializing Trivy DB (one-time download)...
                     docker run --rm ^
