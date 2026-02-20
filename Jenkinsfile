@@ -67,20 +67,22 @@ pipeline {
             steps {
                 echo 'Running Fast Security Scan'
 
-                bat '''
-                if not exist trivy-cache mkdir trivy-cache
+                bat """
+                if not exist "%CD%\\trivy-cache" (
+                    mkdir "%CD%\\trivy-cache"
+                )
 
-                if not exist trivy-cache\\db (
+                if not exist "%CD%\\trivy-cache\\db" (
                     echo Initializing Trivy DB (one-time download)...
                     docker run --rm ^
-                    -v %cd%/trivy-cache:/root/.cache ^
+                    -v "%CD%\\trivy-cache:/root/.cache" ^
                     aquasec/trivy:latest ^
                     image alpine:3.19 >nul
                 )
 
                 docker run --rm ^
-                -v %cd%:/app ^
-                -v %cd%/trivy-cache:/root/.cache ^
+                -v "%CD%:/app" ^
+                -v "%CD%/trivy-cache:/root/.cache" ^
                 aquasec/trivy:latest ^
                 fs ^
                 --scanners vuln ^
@@ -90,7 +92,7 @@ pipeline {
                 --skip-dirs /app/venv ^
                 --skip-dirs /app/.git ^
                 /app
-                '''
+                """
             }
         }
 
