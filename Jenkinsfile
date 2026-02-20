@@ -90,9 +90,9 @@ pipeline {
             steps {
                 echo 'Building Docker Image'
 
-                bat '''
-                docker build -t shaileshbolduc/product-frontend:%BUILD_NUMBER% .
-                '''
+                bat """
+                docker build -t ${IMAGE_NAME}:${TAG} .
+                """
             }
         }
 
@@ -114,7 +114,7 @@ pipeline {
 
         stage('Container Push') {
             when {
-                branch 'main'
+                branch 'release'
             }
             steps {
                 withCredentials([usernamePassword(
@@ -122,10 +122,10 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    bat """
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
                     docker push ${IMAGE_NAME}:${TAG}
-                    '''
+                    """
                 }
             }
         }
