@@ -98,6 +98,22 @@ pipeline {
             }
         }
 
+        stage('Deploy to Dev') {
+            when { branch 'develop' }
+            steps {
+                echo "Deploying ${IMAGE_NAME}:${TAG} to Dev environment"
+                echo "Will implement in phases 4, 5, and 6."
+            }
+        }
+
+        stage('Deploy to Staging') {
+            when { expression { env.BRANCH_NAME.startsWith('release/') } }
+            steps {
+                echo "Deploying ${IMAGE_NAME}:${TAG} to Staging environment"
+                echo "Will implement in phases 4, 5, and 6."
+            }
+        }
+
         stage('Container Push') {
             when {
                 branch 'main'
@@ -116,20 +132,16 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-            when {
-                branch 'main'
-            }
+        stage('Deploy to Production') {
+            when { branch 'main' }
             steps {
                 script {
-
                     if (TARGET_ENV == "prod") {
                         input message: "Approve Production Deployment?"
                     }
 
-                    sh """
-                    echo "Deploying ${IMAGE_NAME}:${TAG} to ${TARGET_ENV} environment"
-                    """
+                    echo "Deploying ${IMAGE_NAME}:${TAG} to Production environment"
+                    echo "Will implement in phases 4, 5, and 6."
                 }
             }
         }
