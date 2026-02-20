@@ -90,9 +90,9 @@ pipeline {
             steps {
                 echo 'Building Docker Image'
 
-                bat '''
-                docker build -t shaileshbolduc/product-frontend:${TAG} .
-                '''
+                bat """
+                docker build -t ${IMAGE_NAME}:${TAG} .
+                """
             }
         }
 
