@@ -79,9 +79,9 @@ pipeline {
                 --skip-db-update ^
                 --no-progress ^
                 --severity HIGH,CRITICAL ^
-                --exclude venv ^
-                --exclude .git ^
-                --exclude __pycache__ ^
+                --skip-dirs /app/venv ^
+                --skip-dirs /app/.git ^
+                --skip-dirs /app/__pycache__ ^
                 /app
                 '''
             }
