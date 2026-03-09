@@ -101,21 +101,13 @@ pipeline {
             steps {
                 echo "Deploying ${IMAGE_NAME}:${TAG} to Dev environment"
                 bat """
+                set KUBECONFIG=C:\\Users\\srbol\\.kube\\config
                 kubectl config use-context devops
+
+                minikube -p devops image load ${IMAGE_NAME}:${TAG}
+
                 kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n dev
                 kubectl rollout status deployment/frontend -n dev
-                """
-            }
-        }
-
-        stage('Deploy to Staging') {
-            when { expression { env.BRANCH_NAME.startsWith('release') } }
-            steps {
-                echo "Deploying ${IMAGE_NAME}:${TAG} to Staging environment"
-                bat """
-                kubectl config use-context devops
-                kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n staging
-                kubectl rollout status deployment/frontend -n staging
                 """
             }
         }
@@ -135,6 +127,18 @@ pipeline {
                     docker push ${IMAGE_NAME}:${TAG}
                     """
                 }
+            }
+        }
+
+        stage('Deploy to Staging') {
+            when { expression { env.BRANCH_NAME.startsWith('release') } }
+            steps {
+                echo "Deploying ${IMAGE_NAME}:${TAG} to Staging environment"
+                bat """
+                kubectl config use-context devops
+                kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n staging
+                kubectl rollout status deployment/frontend -n staging
+                """
             }
         }
 
