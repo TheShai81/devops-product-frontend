@@ -141,7 +141,7 @@ pipeline {
                 set KUBECONFIG=${KUBECONFIG}
                 kubectl config use-context ${KUBE_CONTEXT}
                 kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n staging
-                kubectl rollout status deployment/frontend -n staging --timeout=120skubectl rollout status deployment/frontend -n staging
+                kubectl rollout status deployment/frontend -n staging --timeout=120s
                 """
             }
         }
