@@ -100,7 +100,11 @@ pipeline {
             when { branch 'develop' }
             steps {
                 echo "Deploying ${IMAGE_NAME}:${TAG} to Dev environment"
-                echo "Will implement in phases 4, 5, and 6."
+                bat """
+                kubectl config use-context devops
+                kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n dev
+                kubectl rollout status deployment/frontend -n dev
+                """
             }
         }
 
@@ -108,7 +112,11 @@ pipeline {
             when { expression { env.BRANCH_NAME.startsWith('release') } }
             steps {
                 echo "Deploying ${IMAGE_NAME}:${TAG} to Staging environment"
-                echo "Will implement in phases 4, 5, and 6."
+                bat """
+                kubectl config use-context devops
+                kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n staging
+                kubectl rollout status deployment/frontend -n staging
+                """
             }
         }
 
@@ -139,7 +147,11 @@ pipeline {
                     }
 
                     echo "Deploying ${IMAGE_NAME}:${TAG} to Production environment"
-                    echo "Will implement in phases 4, 5, and 6."
+                    bat """
+                    kubectl config use-context devops
+                    kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n prod
+                    kubectl rollout status deployment/frontend -n prod
+                    """
                 }
             }
         }
