@@ -4,6 +4,8 @@ pipeline {
     environment {
         IMAGE_NAME = "shaileshbolduc/frontend-service"
         TAG = "build-${BUILD_NUMBER}"
+        KUBECONFIG = "C:\\Users\\srbol\\.kube\\config"
+        KUBE_CONTEXT = "devops"
     }
 
     triggers {
@@ -96,33 +98,13 @@ pipeline {
             }
         }
 
-        stage('Deploy to Dev') {
-            when { branch 'develop' }
-            steps {
-                echo "Deploying ${IMAGE_NAME}:${TAG} to Dev environment"
-                bat """
-                kubectl config use-context devops
-                kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n dev
-                kubectl rollout status deployment/frontend -n dev
-                """
-            }
-        }
-
-        stage('Deploy to Staging') {
-            when { expression { env.BRANCH_NAME.startsWith('release') } }
-            steps {
-                echo "Deploying ${IMAGE_NAME}:${TAG} to Staging environment"
-                bat """
-                kubectl config use-context devops
-                kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n staging
-                kubectl rollout status deployment/frontend -n staging
-                """
-            }
-        }
-
         stage('Container Push') {
             when {
-                branch 'release'
+                anyOf {
+                    branch 'develop'
+                    branch 'main'
+                    expression { env.BRANCH_NAME.startsWith('release') }
+                }
             }
             steps {
                 withCredentials([usernamePassword(
@@ -138,6 +120,32 @@ pipeline {
             }
         }
 
+        stage('Deploy to Dev') {
+            when { branch 'develop' }
+            steps {
+                echo "Deploying ${IMAGE_NAME}:${TAG} to Dev environment"
+                bat """
+                set KUBECONFIG=${KUBECONFIG}
+                kubectl config use-context ${KUBE_CONTEXT}
+                kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n dev
+                kubectl rollout status deployment/frontend -n dev --timeout=120s
+                """
+            }
+        }
+
+        stage('Deploy to Staging') {
+            when { expression { env.BRANCH_NAME.startsWith('release') } }
+            steps {
+                echo "Deploying ${IMAGE_NAME}:${TAG} to Staging environment"
+                bat """
+                set KUBECONFIG=${KUBECONFIG}
+                kubectl config use-context ${KUBE_CONTEXT}
+                kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n staging
+                kubectl rollout status deployment/frontend -n staging --timeout=120s
+                """
+            }
+        }
+
         stage('Deploy to Production') {
             when { branch 'main' }
             steps {
@@ -148,12 +156,25 @@ pipeline {
 
                     echo "Deploying ${IMAGE_NAME}:${TAG} to Production environment"
                     bat """
-                    kubectl config use-context devops
+                    set KUBECONFIG=${KUBECONFIG}
+                    kubectl config use-context ${KUBE_CONTEXT}
                     kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n prod
-                    kubectl rollout status deployment/frontend -n prod
+                    kubectl rollout status deployment/frontend -n prod --timeout=120s
                     """
                 }
             }
+        }
+    }
+
+    post {
+        failure {
+            echo "Deployment failed. Kubernetes Info:"
+            bat """
+            set KUBECONFIG=${KUBECONFIG}
+            kubectl get deployments -A
+            kubectl get pods -A
+            kubectl get events -A --sort-by=.metadata.creationTimestamp
+            """
         }
     }
 }
