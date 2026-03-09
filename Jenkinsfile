@@ -96,6 +96,24 @@ pipeline {
             }
         }
 
+        stage('Container Push') {
+            when {
+                branch 'develop'
+            }
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    bat """
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    docker push ${IMAGE_NAME}:${TAG}
+                    """
+                }
+            }
+        }
+
         stage('Deploy to Dev') {
             when { branch 'develop' }
             steps {
@@ -112,29 +130,12 @@ pipeline {
             }
         }
 
-        stage('Container Push') {
-            when {
-                branch 'release'
-            }
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    bat """
-                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                    docker push ${IMAGE_NAME}:${TAG}
-                    """
-                }
-            }
-        }
-
         stage('Deploy to Staging') {
             when { expression { env.BRANCH_NAME.startsWith('release') } }
             steps {
                 echo "Deploying ${IMAGE_NAME}:${TAG} to Staging environment"
                 bat """
+                set KUBECONFIG=C:\\Users\\srbol\\.kube\\config
                 kubectl config use-context devops
                 kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n staging
                 kubectl rollout status deployment/frontend -n staging
@@ -152,6 +153,7 @@ pipeline {
 
                     echo "Deploying ${IMAGE_NAME}:${TAG} to Production environment"
                     bat """
+                    set KUBECONFIG=C:\\Users\\srbol\\.kube\\config
                     kubectl config use-context devops
                     kubectl set image deployment/frontend frontend=${IMAGE_NAME}:${TAG} -n prod
                     kubectl rollout status deployment/frontend -n prod
